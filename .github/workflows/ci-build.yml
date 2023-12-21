@@ -11,6 +11,7 @@ on:
   pull_request:
     branches: 
       - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -34,6 +35,8 @@ jobs:
       with:
         node-version: '16.x'
         cache: 'npm'
+        # cache-dependency-path: Only used to generate the cache name hash
+        cache-dependency-path: '.github/workflows/ci-build.yml' 
     - name: Install npm scripts
       run: | 
         npm init -y
