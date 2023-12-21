@@ -16,13 +16,12 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    env:
-      GIT_BRANCH: ${{ github.head_ref }} 
-      GIT_PR_BASE_BRANCH: ${{ github.base_ref	}}
-      GIT_PULL_REQUEST: ${{ github.event.number }} 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        filter: |
+          .github
     - name: Recall/deploy cache folder
       id: cache-folder
       uses: actions/cache@v3
@@ -56,6 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3          
     - name: Recall/deploy cache folder
       id: cache-folder
       uses: actions/cache@v3
