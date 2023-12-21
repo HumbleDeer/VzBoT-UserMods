@@ -14,22 +14,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
     env:
       GIT_BRANCH: ${{ github.head_ref }} 
       GIT_PR_BASE_BRANCH: ${{ github.base_ref	}}
       GIT_PULL_REQUEST: ${{ github.event.number }} 
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v3
-    - name: Cache Folder
+    - name: Recall/deploy cache folder
       id: cache-folder
       uses: actions/cache@v3
+      env:
+          cache-name: ci-cache
       with:
-        path: ci_cache
-        key: vzbot-usermods_ci
-    - name: Setup Node / npm
+        path: |
+          **/node_modules
+          ci_cache
+          .github_scripts
+        key: vzbot-usermods_${{ env.cache-name }}-${{ hashFiles('.github/workflows/ci-build.yml') }}
+        restore-keys: |
+          vzbot-usermods_${{ env.cache-name }}        
+    - name: Setup Node.js / npm
       id: cache-npm
       uses: actions/setup-node@v3
       with:
@@ -41,7 +48,28 @@ jobs:
       run: | 
         npm init -y
         npm install --global remark-cli remark-validate-links
-    - name: Execute CI
+    - name: Install CI scripts
       run: |
         git clone https://github.com/VoronDesign/GithubScripts.git .github_scripts
+    
+  run-script:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - name: Recall/deploy cache folder
+      id: cache-folder
+      uses: actions/cache@v3
+      env:
+          cache-name: ci-cache
+      with:
+        path: |
+          **/node_modules
+          ci_cache
+          .github_scripts
+        key: vzbot-usermods_${{ env.cache-name }}-${{ hashFiles('.github/workflows/ci-build.yml') }}
+        restore-keys: |
+          vzbot-usermods_${{ env.cache-name }}
+    - name: Execute CI scripts
+      run: |
         /bin/bash ./.github_scripts/workflows/ci-build.sh
+
