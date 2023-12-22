@@ -38,16 +38,19 @@ jobs:
     - name: Setup Node.js / npm
       id: cache-npm
       uses: actions/setup-node@v3
+      if: steps.cache-folder.outputs.cache-hit != 'true'
       with:
         node-version: '16.x'
         cache: 'npm'
         # cache-dependency-path: Only used to generate the cache name hash
         cache-dependency-path: '.github/workflows/ci-build.yml' 
     - name: Install npm scripts
+      if: steps.cache-folder.outputs.cache-hit != 'true' || steps.cache-npm.outputs.cache-hit != 'true'
       run: | 
         npm init -y
         npm install --global remark-cli remark-validate-links
     - name: Install CI scripts
+      if: steps.cache-folder.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/VoronDesign/GithubScripts.git .github_scripts
     
@@ -71,6 +74,7 @@ jobs:
         restore-keys: |
           vzbot-usermods_${{ env.cache-name }}
     - name: Execute CI scripts
+      if: steps.cache-folder.outputs.cache-hit == 'true'
       run: |
         /bin/bash ./.github_scripts/workflows/ci-build.sh
 
